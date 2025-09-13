@@ -1,6 +1,5 @@
 
 ## Table of Contents
--[adarssh](#adarsh)
 - [Project Overview](#project-overview)
 - [Infrastructure Setup](#infrastructure-setup)
 - [Source Code Management](#source-code-management)
