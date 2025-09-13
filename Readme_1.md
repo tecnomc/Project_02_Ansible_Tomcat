@@ -131,15 +131,103 @@ Create an Ansible playbook in the repo (e.g., `deploy.yml`).
 Example `deploy.yml`:
 ```yaml
 ---
-- name: Deploy to Tomcat
+- name: Install and Deploy WAR to Tomcat on Linux
   hosts: localhost
+  become: true
+  vars:
+    java_pkg: java-1.8.0-openjdk-devel
+    tomcat_version: 9.0.109
+    tomcat_install_dir: /opt/tomcat
+    tomcat_service: tomcat
+
   tasks:
-    - name: Copy WAR to Tomcat
-      copy:
-        src: target/demo-app.war
-        dest: /var/lib/tomcat/webapps/
+    - name: Install Java
+      yum:
+        name: "{{ java_pkg }}"
+        state: present
+
+    - name: Create Tomcat group
+      group:
+        name: tomcat
+
+    - name: Create Tomcat user
+      user:
+        name: tomcat
+        group: tomcat
+        home: "{{ tomcat_install_dir }}"
+        shell: /bin/false
+
+    - name: Download Tomcat
+      get_url:
+        url: "https://downloads.apache.org/tomcat/tomcat-9/v{{ tomcat_version }}/bin/apache-tomcat-{{ tomcat_version }}.tar.gz"
+        dest: /tmp/apache-tomcat-{{ tomcat_version }}.tar.gz
+
+    - name: Create Tomcat install directory
+      file:
+        path: "{{ tomcat_install_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Extract Tomcat
+      unarchive:
+        src: /tmp/apache-tomcat-{{ tomcat_version }}.tar.gz
+        dest: "{{ tomcat_install_dir }}"
         remote_src: yes
-    - name: Restart Tomcat
+        extra_opts: [--strip-components=1]
+
+    - name: Change ownership of Tomcat directory
+      file:
+        path: "{{ tomcat_install_dir }}"
+        state: directory
+        recurse: yes
+        owner: tomcat
+        group: tomcat
+
+    - name: Create systemd service for Tomcat
+      copy:
+        dest: /etc/systemd/system/tomcat.service
+        content: |
+          [Unit]
+          Description=Apache Tomcat Web Application Container
+          After=network.target
+
+          [Service]
+          Type=forking
+
+          User=tomcat
+          Group=tomcat
+
+          Environment="JAVA_HOME=/usr/lib/jvm/jre"
+          Environment="CATALINA_PID={{ tomcat_install_dir }}/temp/tomcat.pid"
+          Environment="CATALINA_HOME={{ tomcat_install_dir }}"
+          Environment="CATALINA_BASE={{ tomcat_install_dir }}"
+          Environment="CATALINA_OPTS=-Xms512M -Xmx1024M -server -XX:+UseParallelGC"
+          Environment="JAVA_OPTS=-Djava.awt.headless=true -Djava.security.egd=file:/dev/./urandom"
+
+          ExecStart={{ tomcat_install_dir }}/bin/startup.sh
+          ExecStop={{ tomcat_install_dir }}/bin/shutdown.sh
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd
+      command: systemctl daemon-reload
+
+    - name: Enable and start Tomcat
+      service:
+        name: tomcat
+        state: started
+        enabled: true
+
+    - name: Deploy WAR file to Tomcat webapps
+      copy:
+        src: "{{ artifact }}"
+        dest: "{{ tomcat_install_dir }}/webapps/"
+        owner: tomcat
+        group: tomcat
+        mode: '0644'
+
+    - name: Restart Tomcat after deployment
       service:
         name: tomcat
         state: restarted
