@@ -1,3 +1,4 @@
+<img width="940" height="364" alt="image" src="https://github.com/user-attachments/assets/614d9a78-91d7-49c3-bfd8-73926c7d6f63" />
 
 ## Table of Contents
 - [Project Overview](#project-overview)
