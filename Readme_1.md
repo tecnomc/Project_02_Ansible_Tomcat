@@ -1,6 +1,6 @@
 
 ## Table of Contents
-
+-[adarssh](#adarsh)
 - [Project Overview](#project-overview)
 - [Infrastructure Setup](#infrastructure-setup)
 - [Source Code Management](#source-code-management)
@@ -107,7 +107,6 @@ ansible --version  # Verify
 3. In Pipeline definition, select "Pipeline script from SCM".
 4. SCM: Git, Repository URL: `https://github.com/<username>/ci-cd-demo.git`.
 5. Script Path: `Jenkinsfile`.
-6. Build Triggers: GitHub hook trigger for GITScm polling.
 
 ### Maven Integration
 Maven is used to build the app. Ensure `pom.xml` is in the repo root.
@@ -247,21 +246,34 @@ In Jenkinsfile, invoke Ansible after build.
 
 #### Jenkinsfile
 ```groovy
-pipeline {
+pipeline { 
     agent any
+
     stages {
-        stage('Build') {
+	
+        stage('CLONE GITHUB CODE') {
             steps {
-                sh 'mvn clean package'
+                echo 'In this stage code will be cloned'
+                git branch: 'main', url: 'https://github.com/adarsh0331/Project_2.git'
             }
         }
-        stage('Deploy') {
+		
+        stage('BUILDING THE CODE') {
             steps {
-                ansiblePlaybook(
-                    playbook: 'deploy.yml',
-                    inventory: 'localhost,',
-                    become: true
-                )
+                echo 'In this stage code will be built and mvn artifact will be generated'
+                sh 'mvn clean install'
+            }
+        }		
+		
+        stage('DEPLOY WITH ANSIBLE') {
+            steps {
+                echo 'In this stage, Ansible will deploy the WAR file to Tomcat'
+                sh '''
+                    #ARTIFACT=$(ls target/*.war | head -n 1)
+                    ARTIFACT=$WORKSPACE/target/devops-3.2.0.war
+                    echo "Deploying artifact: $ARTIFACT"
+                    ansible-playbook ansible/playbook.yml --extra-vars "artifact=$ARTIFACT"
+                '''
             }
         }
     }
