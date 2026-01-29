@@ -99,3 +99,11 @@
       service:
         name: tomcat
         state: restarted
+        
+    - name: Show Tomcat host IP
+      debug:
+        msg: "Tomcat is running on host: {{ inventory_hostname }}"
+
+    - name: Show application URL
+      debug:
+       msg: "Application URL: http://{{ inventory_hostname }}:8080/devops"
