@@ -6,7 +6,7 @@ pipeline {
         stage('CLONE GITHUB CODE') {
             steps {
                 echo 'In this stage code will be cloned'
-                git branch: 'main', url: 'https://github.com/adarsh0331/Project_2.git'
+                git branch: 'main', url: 'https://github.com/tecnomc/Project_2.git'
             }
         }
 		
