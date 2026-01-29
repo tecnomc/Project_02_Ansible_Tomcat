@@ -25,7 +25,6 @@ pipeline {
                     ARTIFACT=$WORKSPACE/target/devops-3.2.0.war
                     echo "Deploying artifact: $ARTIFACT"
                     ansible-playbook ansible/deploy_tomcat.yml --extra-vars "artifact=$ARTIFACT"
-					echo "IP : <Tomact_Hostname>"
                 '''
             }
         }
