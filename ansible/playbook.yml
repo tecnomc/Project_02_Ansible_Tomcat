@@ -1,6 +1,6 @@
 ---
 - name: Install and Deploy WAR to Tomcat on Ubuntu
-  hosts: localhost
+  hosts: 98.88.75.131
   become: true
   vars:
    tomcat_service: tomcat10
