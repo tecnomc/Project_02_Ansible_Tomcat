@@ -16,13 +16,19 @@ pipeline {
                 sh 'mvn clean install'
             }
         }		
-		
-        stage('DEPLOY WITH ANSIBLE') {
-            steps {
-                echo 'In this stage, Ansible will deploy the WAR file to Tomcat'
-                sh '''
+		stage('Deploy")
+			  steps{
+				  sh '''
+				  ansible-playbook -i ansible/inventory ansible/deploy_tomcat.yml \
+                  --extra-vars "artifact=$ARTIFACT"
+				  '''
+
+       # stage('DEPLOY WITH ANSIBLE') {
+            #steps {
+               # echo 'In this stage, Ansible will deploy the WAR file to Tomcat'
+               # sh '''
                     #ARTIFACT=$(ls target/*.war | head -n 1)
-                    ARTIFACT=$WORKSPACE/target/devops-3.2.0.war
+                    #ARTIFACT=$WORKSPACE/target/devops-3.2.0.war
                     echo "Deploying artifact: $ARTIFACT"
                     ansible-playbook ansible/deploy_tomcat.yml --extra-vars "artifact=$ARTIFACT"
                 '''
