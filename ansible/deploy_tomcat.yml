@@ -1,6 +1,6 @@
 ---
 - name: Install and Deploy WAR to Tomcat on Linux
-  hosts: localhost
+  hosts: tomcat
   become: true
   vars:
     java_pkg: java-1.8.0-openjdk-devel
